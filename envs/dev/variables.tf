@@ -15,6 +15,12 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
+variable "nat_gateway_count" {
+  description = "Number of NAT Gateways (and EIPs) to create"
+  type        = number
+  default     = 1
+}
+
 variable "public_subnet_cidrs" {
   description = "CIDR blocks for public subnets"
   type        = list(string)
@@ -63,10 +69,28 @@ variable "enable_vpc_cni_addon" {
   default     = true
 }
 
+variable "vpc_cni_addon_version" {
+  description = "Version of VPC CNI addon (optional; empty lets AWS pick default)"
+  type        = string
+  default     = ""
+}
+
+variable "vpc_cni_service_account_role_arn" {
+  description = "Service account role ARN for VPC CNI addon (optional)"
+  type        = string
+  default     = ""
+}
+
 variable "enable_coredns_addon" {
   description = "Enable CoreDNS addon"
   type        = bool
   default     = true
+}
+
+variable "coredns_addon_version" {
+  description = "Version of CoreDNS addon (optional; empty lets AWS pick default)"
+  type        = string
+  default     = ""
 }
 
 variable "enable_kube_proxy_addon" {
@@ -75,10 +99,28 @@ variable "enable_kube_proxy_addon" {
   default     = true
 }
 
+variable "kube_proxy_addon_version" {
+  description = "Version of kube-proxy addon (optional; empty lets AWS pick default)"
+  type        = string
+  default     = ""
+}
+
 variable "enable_ebs_csi_addon" {
   description = "Enable EBS CSI driver addon"
   type        = bool
   default     = false
+}
+
+variable "ebs_csi_addon_version" {
+  description = "Version of EBS CSI addon (optional; empty lets AWS pick default)"
+  type        = string
+  default     = ""
+}
+
+variable "ebs_csi_service_account_role_arn" {
+  description = "Service account role ARN for EBS CSI addon (optional)"
+  type        = string
+  default     = ""
 }
 
 variable "node_group_name" {
@@ -137,6 +179,30 @@ variable "node_group_max_unavailable" {
 
 variable "node_group_ec2_ssh_key" {
   description = "EC2 Key Pair name for SSH access"
+  type        = string
+  default     = ""
+}
+
+variable "node_group_source_security_group_ids" {
+  description = "List of source security group IDs allowed for SSH access to nodes"
+  type        = list(string)
+  default     = []
+}
+
+variable "node_group_taint_key" {
+  description = "Taint key (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "node_group_taint_value" {
+  description = "Taint value (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "node_group_taint_effect" {
+  description = "Taint effect (NO_SCHEDULE, NO_EXECUTE, PREFER_NO_SCHEDULE) (optional)"
   type        = string
   default     = ""
 }

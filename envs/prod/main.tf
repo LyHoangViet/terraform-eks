@@ -22,18 +22,56 @@ module "vpc" {
   )
 }
 
+# IAM for EKS Cluster
+module "eks_iam" {
+  source = "../../modules/iam"
+
+  role_name           = "${var.project_name}-${var.environment}-cluster-role"
+  assume_role_service = "eks.amazonaws.com"
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+    "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController",
+  ]
+
+  tags = merge(
+    var.common_tags,
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    }
+  )
+}
+
+# Security Group for EKS Cluster
+module "eks_sg" {
+  source = "../../modules/sg"
+
+  name_prefix = "${var.project_name}-${var.environment}-cluster"
+  vpc_id      = module.vpc.vpc_id
+
+  tags = merge(
+    var.common_tags,
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    }
+  )
+}
+
 # EKS Module
 module "eks" {
   source = "../../modules/eks"
 
-  cluster_name            = "${var.project_name}-${var.environment}"
-  vpc_id                  = module.vpc.vpc_id
-  subnet_ids              = module.vpc.private_subnet_ids
-  kubernetes_version      = var.kubernetes_version
-  endpoint_private_access = var.eks_endpoint_private_access
-  endpoint_public_access  = var.eks_endpoint_public_access
+  cluster_name              = "${var.project_name}-${var.environment}"
+  vpc_id                    = module.vpc.vpc_id
+  subnet_ids                = module.vpc.private_subnet_ids
+  cluster_role_arn          = module.eks_iam.role_arn
+  cluster_security_group_id = module.eks_sg.alb_security_group_id
+  kubernetes_version        = var.kubernetes_version
+  endpoint_private_access   = var.eks_endpoint_private_access
+  endpoint_public_access    = var.eks_endpoint_public_access
   enabled_cluster_log_types = var.eks_enabled_cluster_log_types
-  kms_key_arn             = var.eks_kms_key_arn
+  kms_key_arn               = var.eks_kms_key_arn
 
   enable_vpc_cni_addon     = var.enable_vpc_cni_addon
   enable_coredns_addon     = var.enable_coredns_addon
@@ -50,12 +88,34 @@ module "eks" {
 }
 
 # Node Group Module
+module "nodegroup_iam" {
+  source = "../../modules/iam"
+
+  role_name           = "${var.project_name}-${var.environment}-${var.node_group_name}-node-role"
+  assume_role_service = "ec2.amazonaws.com"
+  managed_policy_arns = compact([
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    var.enable_ebs_csi_addon ? "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy" : "",
+  ])
+
+  tags = merge(
+    var.common_tags,
+    {
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    }
+  )
+}
+
 module "nodegroup" {
   source = "../../modules/nodegroup"
 
   cluster_name      = module.eks.cluster_name
   node_group_name   = var.node_group_name
   subnet_ids        = module.vpc.private_subnet_ids
+  node_role_arn     = module.nodegroup_iam.role_arn
   kubernetes_version = var.kubernetes_version
   capacity_type     = var.node_group_capacity_type
   instance_types    = var.node_group_instance_types
@@ -66,7 +126,6 @@ module "nodegroup" {
   min_size          = var.node_group_min_size
   max_unavailable   = var.node_group_max_unavailable
   ec2_ssh_key       = var.node_group_ec2_ssh_key
-  enable_ebs_csi    = var.enable_ebs_csi_addon
 
   labels = var.node_group_labels
 

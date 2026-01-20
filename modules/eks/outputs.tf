@@ -20,12 +20,12 @@ output "cluster_endpoint" {
 
 output "cluster_security_group_id" {
   description = "Security group ID attached to the EKS cluster"
-  value       = aws_security_group.cluster.id
+  value       = var.cluster_security_group_id
 }
 
 output "cluster_iam_role_arn" {
   description = "IAM role ARN associated with EKS cluster"
-  value       = aws_iam_role.cluster.arn
+  value       = var.cluster_role_arn
 }
 
 output "cluster_certificate_authority_data" {

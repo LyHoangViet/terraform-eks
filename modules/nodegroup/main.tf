@@ -1,54 +1,8 @@
-# EKS Node Group IAM Role
-resource "aws_iam_role" "node_group" {
-  name = "${var.cluster_name}-${var.node_group_name}-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-
-  tags = var.tags
-}
-
-# Attach Worker Node Policy
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.node_group.name
-}
-
-# Attach Container Registry Policy
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEKS_CNI_Policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.node_group.name
-}
-
-# Attach Container Registry Policy
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.node_group.name
-}
-
-# Attach EBS CSI Driver Policy (if needed)
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEBSCSIDriverPolicy" {
-  count = var.enable_ebs_csi ? 1 : 0
-
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  role       = aws_iam_role.node_group.name
-}
-
 # EKS Node Group
 resource "aws_eks_node_group" "main" {
   cluster_name    = var.cluster_name
   node_group_name = var.node_group_name
-  node_role_arn   = aws_iam_role.node_group.arn
+  node_role_arn   = var.node_role_arn
   subnet_ids      = var.subnet_ids
   version         = var.kubernetes_version
   capacity_type   = var.capacity_type
@@ -84,12 +38,6 @@ resource "aws_eks_node_group" "main" {
       effect = var.taint_effect
     }
   }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.node_group_AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.node_group_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.node_group_AmazonEC2ContainerRegistryReadOnly,
-  ]
 
   tags = merge(
     var.tags,

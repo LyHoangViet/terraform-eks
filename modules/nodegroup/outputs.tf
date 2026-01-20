@@ -25,5 +25,5 @@ output "node_group_instance_types" {
 
 output "node_group_iam_role_arn" {
   description = "IAM role ARN associated with EKS node group"
-  value       = aws_iam_role.node_group.arn
+  value       = var.node_role_arn
 }

@@ -63,7 +63,7 @@ resource "aws_subnet" "private" {
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
-  count = length(var.public_subnet_cidrs)
+  count = var.nat_gateway_count
 
   domain = "vpc"
   depends_on = [aws_internet_gateway.main]
@@ -78,7 +78,7 @@ resource "aws_eip" "nat" {
 
 # NAT Gateways
 resource "aws_nat_gateway" "main" {
-  count = length(var.public_subnet_cidrs)
+  count = var.nat_gateway_count
 
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
@@ -125,7 +125,9 @@ resource "aws_route_table" "private" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main[count.index].id
+    # Map private subnets to NAT Gateways. If nat_gateway_count < number of private subnets,
+    # private subnets will share NAT Gateways in a round-robin fashion.
+    nat_gateway_id = aws_nat_gateway.main[count.index % var.nat_gateway_count].id
   }
 
   tags = merge(
