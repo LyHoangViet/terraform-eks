@@ -32,8 +32,8 @@ resource "aws_eks_addon" "vpc_cni" {
 
   cluster_name             = aws_eks_cluster.main.name
   addon_name               = "vpc-cni"
-  addon_version            = var.vpc_cni_addon_version
-  service_account_role_arn = var.vpc_cni_service_account_role_arn
+  addon_version            = var.vpc_cni_addon_version != null ? var.vpc_cni_addon_version : null
+  service_account_role_arn = var.vpc_cni_service_account_role_arn != null ? var.vpc_cni_service_account_role_arn : null
 
   tags = var.tags
 }
@@ -41,9 +41,9 @@ resource "aws_eks_addon" "vpc_cni" {
 resource "aws_eks_addon" "coredns" {
   count = var.enable_coredns_addon ? 1 : 0
 
-  cluster_name = aws_eks_cluster.main.name
-  addon_name   = "coredns"
-  addon_version = var.coredns_addon_version
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "coredns"
+  addon_version = var.coredns_addon_version != null ? var.coredns_addon_version : null
 
   tags = var.tags
 }
@@ -51,9 +51,9 @@ resource "aws_eks_addon" "coredns" {
 resource "aws_eks_addon" "kube_proxy" {
   count = var.enable_kube_proxy_addon ? 1 : 0
 
-  cluster_name = aws_eks_cluster.main.name
-  addon_name   = "kube-proxy"
-  addon_version = var.kube_proxy_addon_version
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "kube-proxy"
+  addon_version = var.kube_proxy_addon_version != null ? var.kube_proxy_addon_version : null
 
   tags = var.tags
 }
@@ -63,8 +63,8 @@ resource "aws_eks_addon" "ebs_csi_driver" {
 
   cluster_name             = aws_eks_cluster.main.name
   addon_name               = "aws-ebs-csi-driver"
-  addon_version            = var.ebs_csi_addon_version
-  service_account_role_arn = var.ebs_csi_service_account_role_arn
+  addon_version            = var.ebs_csi_addon_version != null ? var.ebs_csi_addon_version : null
+  service_account_role_arn = var.ebs_csi_service_account_role_arn != null ? var.ebs_csi_service_account_role_arn : null
 
   tags = var.tags
 }

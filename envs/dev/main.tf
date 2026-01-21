@@ -5,7 +5,7 @@ data "aws_availability_zones" "available" {
 
 # VPC Module
 module "vpc" {
-  source = "../../modules/vpc"
+  source = "D:/VPBank/research/terraform-eks/modules/vpc"
 
   name_prefix            = "${var.project_name}-${var.environment}"
   vpc_cidr               = var.vpc_cidr
@@ -25,7 +25,7 @@ module "vpc" {
 
 # IAM for EKS Cluster
 module "eks_iam" {
-  source = "../../modules/iam"
+  source = "D:/VPBank/research/terraform-eks/modules/iam"
 
   role_name           = "${var.project_name}-${var.environment}-cluster-role"
   assume_role_service = "eks.amazonaws.com"
@@ -46,7 +46,7 @@ module "eks_iam" {
 
 # Security Group for EKS Cluster
 module "eks_sg" {
-  source = "../../modules/sg"
+  source = "D:/VPBank/research/terraform-eks/modules/sg"
 
   name_prefix = "${var.project_name}-${var.environment}-cluster"
   vpc_id      = module.vpc.vpc_id
@@ -67,7 +67,7 @@ module "eks_sg" {
 
 # EKS Module
 module "eks" {
-  source = "../../modules/eks"
+  source = "D:/VPBank/research/terraform-eks/modules/eks"
 
   cluster_name              = "${var.project_name}-${var.environment}"
   vpc_id                    = module.vpc.vpc_id
@@ -105,7 +105,7 @@ module "eks" {
 
 # Node Group Module
 module "nodegroup_iam" {
-  source = "../../modules/iam"
+  source = "D:/VPBank/research/terraform-eks/modules/iam"
 
   role_name           = "${var.project_name}-${var.environment}-${var.node_group_name}-node-role"
   assume_role_service = "ec2.amazonaws.com"
@@ -127,7 +127,7 @@ module "nodegroup_iam" {
 }
 
 module "nodegroup" {
-  source = "../../modules/nodegroup"
+  source = "D:/VPBank/research/terraform-eks/modules/nodegroup"
 
   cluster_name      = module.eks.cluster_name
   node_group_name   = var.node_group_name

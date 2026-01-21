@@ -30,7 +30,7 @@ resource "aws_eks_node_group" "main" {
 
   labels = var.labels
 
-  dynamic "taints" {
+  dynamic "taint" {
     for_each = var.taint_key != "" ? [1] : []
     content {
       key    = var.taint_key
